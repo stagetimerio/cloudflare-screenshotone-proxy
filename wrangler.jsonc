@@ -1,0 +1,12 @@
+{
+  "name": "stagetimer-screenshotone-proxy",
+  "main": "worker.js",
+  "compatibility_date": "2025-10-26",
+
+  // Environment variables - set these using:
+  // wrangler secret put SCREENSHOTONE_ACCESS_KEY
+  // wrangler secret put SCREENSHOTONE_SECRET_KEY
+  "vars": {
+    // Non-sensitive configuration can go here if needed
+  }
+}
