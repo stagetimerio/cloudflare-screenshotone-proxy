@@ -49,16 +49,13 @@ export default {
         env.SCREENSHOTONE_SECRET_KEY
       )
 
-      // Add cookie_banner=0 to the target URL
-      parsedUrl.searchParams.set('cookie_banner', '0')
-
       // Use cache key from environment variable (can be rolled on deployment)
       const cacheKey = env.CACHE_KEY || 'default'
       console.log('[Cache] Using cache key:', cacheKey)
 
       // Build screenshot options matching the current implementation
       const options = screenshotone.TakeOptions
-        .url(parsedUrl.href)
+        .url(targetUrl)
         .format('jpg')
         .blockAds(true)
         .blockCookieBanners(true)
@@ -74,7 +71,7 @@ export default {
 
       // Generate signed URL
       const screenshotUrl = await client.generateSignedTakeURL(options)
-      console.log('[ScreenshotOne] Generated signed URL')
+      console.log('[ScreenshotOne] Generated signed URL:', screenshotUrl)
 
       // Fetch the screenshot
       const screenshotResponse = await fetch(screenshotUrl)
