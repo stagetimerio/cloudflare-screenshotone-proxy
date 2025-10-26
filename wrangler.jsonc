@@ -2,6 +2,7 @@
   "name": "stagetimer-screenshotone-proxy",
   "main": "worker.js",
   "compatibility_date": "2025-10-26",
+  "compatibility_flags": ["nodejs_compat"],
 
   // Environment variables - set these using:
   // wrangler secret put SCREENSHOTONE_ACCESS_KEY

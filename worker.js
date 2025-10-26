@@ -2,8 +2,12 @@ import * as screenshotone from 'screenshotone-api-sdk'
 
 export default {
   async fetch(request, env) {
+    const requestUrl = new URL(request.url)
+    console.log(`[Request] ${request.method} ${requestUrl.pathname}${requestUrl.search}`)
+
     // Only allow GET requests
     if (request.method !== 'GET') {
+      console.log('[Error] Method not allowed:', request.method)
       return new Response('Method not allowed', { status: 405 })
     }
 
@@ -12,6 +16,7 @@ export default {
 
     // Validate URL parameter
     if (!targetUrl) {
+      console.log('[Error] Missing URL parameter')
       return new Response('Missing required parameter: url', { status: 400 })
     }
 
@@ -20,15 +25,20 @@ export default {
     try {
       parsedUrl = new URL(targetUrl)
     } catch (error) {
+      console.log('[Error] Invalid URL format:', targetUrl, error.message)
       return new Response('Invalid URL format', { status: 400 })
     }
 
     if (!parsedUrl.hostname.endsWith('stagetimer.io')) {
+      console.log('[Error] Forbidden domain:', parsedUrl.hostname)
       return new Response('Only stagetimer.io URLs are allowed', { status: 403 })
     }
 
+    console.log('[Processing] Screenshot for:', targetUrl)
+
     // Check for required environment variables
     if (!env.SCREENSHOTONE_ACCESS_KEY || !env.SCREENSHOTONE_SECRET_KEY) {
+      console.log('[Error] Missing API credentials')
       return new Response('Server configuration error', { status: 500 })
     }
 
@@ -63,16 +73,20 @@ export default {
 
       // Generate signed URL
       const screenshotUrl = await client.generateSignedTakeURL(options)
+      console.log('[ScreenshotOne] Generated signed URL')
 
       // Fetch the screenshot
       const screenshotResponse = await fetch(screenshotUrl)
 
       if (!screenshotResponse.ok) {
+        console.log('[Error] ScreenshotOne API error:', screenshotResponse.status, screenshotResponse.statusText)
         return new Response(
           `Screenshot service error: ${screenshotResponse.status}`,
           { status: screenshotResponse.status }
         )
       }
+
+      console.log('[Success] Returning screenshot image')
 
       // Return the image with proper headers
       return new Response(screenshotResponse.body, {
