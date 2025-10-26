@@ -20,6 +20,20 @@ npm install
 
 ### 2. Configure API Keys
 
+#### For Local Development
+
+Create a `.dev.vars` file in the project root with your API keys:
+
+```bash
+SCREENSHOTONE_ACCESS_KEY=your_access_key_here
+SCREENSHOTONE_SECRET_KEY=your_secret_key_here
+CACHE_KEY=v1
+```
+
+This file is already in `.gitignore` and will not be committed.
+
+#### For Production Deployment
+
 Set your ScreenshotOne API credentials as Cloudflare secrets:
 
 ```bash
@@ -27,7 +41,9 @@ wrangler secret put SCREENSHOTONE_ACCESS_KEY
 wrangler secret put SCREENSHOTONE_SECRET_KEY
 ```
 
-You'll be prompted to enter each value. These are stored securely and not visible in your code.
+You'll be prompted to enter each value. These are stored securely in Cloudflare.
+
+The `CACHE_KEY` is configured in `wrangler.jsonc` and can be changed to invalidate all cached screenshots on the next deployment. Simply update the value (e.g., from `v1` to `v2`) and redeploy.
 
 ### 3. Development
 
@@ -54,13 +70,12 @@ The worker will be available at `https://stagetimer-screenshotone-proxy.<your-su
 ### API Endpoint
 
 ```
-GET /?url=<target-url>[&cacheKey=<cache-key>]
+GET /?url=<target-url>
 ```
 
 ### Parameters
 
 - `url` (required): The stagetimer.io URL to screenshot
-- `cacheKey` (optional): Custom cache key for the screenshot. Defaults to the URL.
 
 ### Example
 
@@ -89,10 +104,14 @@ The worker applies the following settings to all screenshots:
 - Viewport: 1200x627px
 - Device scale: 1x
 - Blocks: Ads, cookie banners, trackers
-- Cache: 30 days
+- Cache: 30 days (controlled by `CACHE_KEY` env var)
 - Scroll target: `main` element
 
 These match the settings used in the current Stagetimer landing page implementation.
+
+### Cache Invalidation
+
+All screenshots use the same cache key from the `CACHE_KEY` environment variable. To invalidate all cached screenshots (e.g., after a major design change), simply update the `CACHE_KEY` in `wrangler.jsonc` (e.g., from `v1` to `v2`) and redeploy.
 
 ## Security
 

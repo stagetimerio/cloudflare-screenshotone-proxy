@@ -4,10 +4,13 @@
   "compatibility_date": "2025-10-26",
   "compatibility_flags": ["nodejs_compat"],
 
-  // Environment variables - set these using:
-  // wrangler secret put SCREENSHOTONE_ACCESS_KEY
-  // wrangler secret put SCREENSHOTONE_SECRET_KEY
+  // Environment variables
+  // Secrets (set using wrangler secret put):
+  //   - SCREENSHOTONE_ACCESS_KEY
+  //   - SCREENSHOTONE_SECRET_KEY
+  //
+  // Public vars (set here or via wrangler deploy):
   "vars": {
-    // Non-sensitive configuration can go here if needed
+    "CACHE_KEY": "v1"  // Change this to invalidate all cached screenshots
   }
 }

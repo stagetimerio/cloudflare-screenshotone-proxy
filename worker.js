@@ -52,8 +52,9 @@ export default {
       // Add cookie_banner=0 to the target URL
       parsedUrl.searchParams.set('cookie_banner', '0')
 
-      // Get cache key from query params or use URL as default
-      const cacheKey = url.searchParams.get('cacheKey') || targetUrl
+      // Use cache key from environment variable (can be rolled on deployment)
+      const cacheKey = env.CACHE_KEY || 'default'
+      console.log('[Cache] Using cache key:', cacheKey)
 
       // Build screenshot options matching the current implementation
       const options = screenshotone.TakeOptions
@@ -79,7 +80,9 @@ export default {
       const screenshotResponse = await fetch(screenshotUrl)
 
       if (!screenshotResponse.ok) {
+        const errorBody = await screenshotResponse.text()
         console.log('[Error] ScreenshotOne API error:', screenshotResponse.status, screenshotResponse.statusText)
+        console.log('[Error] Response body:', errorBody)
         return new Response(
           `Screenshot service error: ${screenshotResponse.status}`,
           { status: screenshotResponse.status }
