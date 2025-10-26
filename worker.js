@@ -5,8 +5,8 @@ export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url)
 
-    // Only allow GET requests
-    if (request.method !== 'GET') {
+    // Only allow GET and HEAD requests
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
       console.log(`[Error] ${request.method} ${requestUrl.pathname} - Method not allowed`)
       return new Response('Method not allowed', { status: 405 })
     }
@@ -72,7 +72,7 @@ export default {
       // Generate signed URL
       const screenshotUrl = await client.generateSignedTakeURL(options)
 
-      // Fetch the screenshot
+      // Fetch the screenshot (always use GET to ScreenshotOne, even for HEAD requests)
       const screenshotResponse = await fetch(screenshotUrl)
 
       if (!screenshotResponse.ok) {
@@ -90,20 +90,28 @@ export default {
       // Generate filename from request
       const filename = generateFilename(requestUrl)
 
+      // Build response headers
+      const headers = {
+        'Content-Type': 'image/jpeg',
+        'Content-Disposition': `inline; filename="${filename}"`,
+        'Cache-Control': 'public, max-age=2592000', // 30 days
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, HEAD',
+        'Access-Control-Allow-Headers': 'X-Cache-Key',
+        'Access-Control-Expose-Headers': 'Content-Disposition, X-Image-Width, X-Image-Height',
+        'X-Image-Width': '1200',
+        'X-Image-Height': '627',
+      }
+
+      // Include Content-Length if available from upstream response
+      const contentLength = screenshotResponse.headers.get('Content-Length')
+      if (contentLength) {
+        headers['Content-Length'] = contentLength
+      }
+
       // Return the image with proper headers including metadata
-      return new Response(screenshotResponse.body, {
-        headers: {
-          'Content-Type': 'image/jpeg',
-          'Content-Disposition': `inline; filename="${filename}"`,
-          'Cache-Control': 'public, max-age=2592000', // 30 days
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET',
-          'Access-Control-Allow-Headers': 'X-Cache-Key',
-          'Access-Control-Expose-Headers': 'Content-Disposition, X-Image-Width, X-Image-Height',
-          'X-Image-Width': '1200',
-          'X-Image-Height': '627',
-        },
-      })
+      // For HEAD requests, return null body; for GET requests, return the image
+      return new Response(request.method === 'HEAD' ? null : screenshotResponse.body, { headers })
     } catch (error) {
       console.log(`[Error] ${targetUrl} - Internal error`)
       console.log(`  Message:`, error.message)
