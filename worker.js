@@ -49,8 +49,8 @@ export default {
         env.SCREENSHOTONE_SECRET_KEY
       )
 
-      // Use cache key from environment variable (can be rolled on deployment)
-      const cacheKey = env.CACHE_KEY || 'default'
+      // Use cache key from request header, fallback to environment variable (can be rolled on deployment)
+      const cacheKey = request.headers.get('x-cache-key') || env.CACHE_KEY || 'default'
 
       // Build screenshot options matching the current implementation
       const options = screenshotone.TakeOptions
@@ -98,6 +98,7 @@ export default {
           'Cache-Control': 'public, max-age=2592000', // 30 days
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET',
+          'Access-Control-Allow-Headers': 'X-Cache-Key',
           'Access-Control-Expose-Headers': 'Content-Disposition, X-Image-Width, X-Image-Height',
           'X-Image-Width': '1200',
           'X-Image-Height': '627',
