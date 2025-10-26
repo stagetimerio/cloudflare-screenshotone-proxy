@@ -1,4 +1,5 @@
 import * as screenshotone from 'screenshotone-api-sdk'
+import { extractTargetUrl } from './utils.js'
 
 export default {
   async fetch(request, env) {
@@ -11,32 +12,12 @@ export default {
       return new Response('Method not allowed', { status: 405 })
     }
 
-    const url = new URL(request.url)
-    let targetUrl = url.searchParams.get('url')
+    // Extract target URL from request
+    const targetUrl = extractTargetUrl(requestUrl)
 
-    // If no query parameter, parse from path (e.g., /stagetimer.io/pricing.jpg)
     if (!targetUrl) {
-      let pathname = url.pathname
-
-      // Remove leading slash
-      if (pathname.startsWith('/')) {
-        pathname = pathname.slice(1)
-      }
-
-      // Remove .jpg extension if present
-      if (pathname.endsWith('.jpg')) {
-        pathname = pathname.slice(0, -4)
-      }
-
-      // Validate we have a path
-      if (!pathname) {
-        console.log('[Error] Missing URL in path or query parameter')
-        return new Response('Missing URL: use /{domain}/{path}.jpg or ?url={url}', { status: 400 })
-      }
-
-      // Construct the full URL with https://
-      targetUrl = `https://${pathname}`
-      console.log('[Path] Parsed target URL from path:', targetUrl)
+      console.log('[Error] Missing URL in path or query parameter')
+      return new Response('Missing URL: use /{domain}/{path}.jpg or ?url={url}', { status: 400 })
     }
 
     // Validate that the URL is a stagetimer.io domain
