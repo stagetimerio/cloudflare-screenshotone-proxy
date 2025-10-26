@@ -161,6 +161,27 @@ The worker applies the following settings to all screenshots:
 
 These match the settings used in the current Stagetimer landing page implementation.
 
+## Response Headers
+
+The worker includes helpful metadata in response headers:
+
+- **`Content-Disposition`**: Provides the filename (e.g., `inline; filename="stagetimer.io__output__123.jpg"`)
+- **`X-Image-Width`**: Image width in pixels (`1200`)
+- **`X-Image-Height`**: Image height in pixels (`627`)
+- **`Content-Type`**: Always `image/jpeg`
+- **`Cache-Control`**: Set to 30 days
+
+These headers are exposed via CORS, so you can access them from JavaScript:
+
+```javascript
+const response = await fetch(screenshotUrl)
+const filename = response.headers.get('content-disposition')?.match(/filename="(.+)"/)?.[1]
+const width = response.headers.get('x-image-width')
+const height = response.headers.get('x-image-height')
+
+console.log(`${filename}: ${width}x${height}`) // stagetimer.io__output__123.jpg: 1200x627
+```
+
 ### Cache Invalidation
 
 All screenshots use the same cache key from the `CACHE_KEY` environment variable. To invalidate all cached screenshots (e.g., after a major design change), simply update the `CACHE_KEY` in `wrangler.jsonc` (e.g., from `v1` to `v2`) and redeploy.

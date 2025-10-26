@@ -62,3 +62,37 @@ export function extractTargetUrl(requestUrl) {
 
   return targetUrl
 }
+
+/**
+ * Generates a filename from the request URL
+ * @param {URL} requestUrl - The request URL object
+ * @returns {string} - The filename for the screenshot
+ */
+export function generateFilename(requestUrl) {
+  let pathname = requestUrl.pathname
+
+  // Remove leading slash
+  if (pathname.startsWith('/')) {
+    pathname = pathname.slice(1)
+  }
+
+  // If already ends with .jpg, use as-is
+  if (pathname.endsWith('.jpg')) {
+    return pathname.split('/').pop() // Get last segment
+  }
+
+  // For encoded format (contains __), use the whole path
+  if (pathname.includes('__')) {
+    return `${pathname}.jpg`
+  }
+
+  // For literal format, try to extract a meaningful part
+  const segments = pathname.split('/')
+  if (segments.length > 1) {
+    // Use domain + last path segment
+    return `${segments[0]}__${segments[segments.length - 1]}.jpg`
+  }
+
+  // Fallback
+  return `${pathname}.jpg`
+}

@@ -1,5 +1,5 @@
 import * as screenshotone from 'screenshotone-api-sdk'
-import { extractTargetUrl } from './utils.js'
+import { extractTargetUrl, generateFilename } from './utils.js'
 
 export default {
   async fetch(request, env) {
@@ -89,13 +89,21 @@ export default {
 
       console.log('[Success] Returning screenshot image')
 
-      // Return the image with proper headers
+      // Generate filename from request
+      const filename = generateFilename(requestUrl)
+      console.log('[Metadata] Filename:', filename)
+
+      // Return the image with proper headers including metadata
       return new Response(screenshotResponse.body, {
         headers: {
           'Content-Type': 'image/jpeg',
+          'Content-Disposition': `inline; filename="${filename}"`,
           'Cache-Control': 'public, max-age=2592000', // 30 days
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET',
+          'Access-Control-Expose-Headers': 'Content-Disposition, X-Image-Width, X-Image-Height',
+          'X-Image-Width': '1200',
+          'X-Image-Height': '627',
         },
       })
     } catch (error) {
