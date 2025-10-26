@@ -44,7 +44,6 @@ export function extractTargetUrl(requestUrl) {
     // Convert double underscores back to slashes
     const decodedPath = pathname.replace(/__/g, '/')
     targetUrl = `https://${decodedPath}`
-    console.log('[Path] Detected encoded format, converted:', pathname, '->', targetUrl)
   } else {
     // Literal format - use as-is
     targetUrl = `https://${pathname}`
@@ -57,8 +56,6 @@ export function extractTargetUrl(requestUrl) {
   if (queryParams.toString()) {
     targetUrl += `?${queryParams.toString()}`
   }
-
-  console.log('[Path] Parsed target URL from path:', targetUrl)
 
   return targetUrl
 }

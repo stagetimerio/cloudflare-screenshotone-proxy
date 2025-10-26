@@ -4,11 +4,10 @@ import { extractTargetUrl, generateFilename } from './utils.js'
 export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url)
-    console.log(`[Request] ${request.method} ${requestUrl.pathname}${requestUrl.search}`)
 
     // Only allow GET requests
     if (request.method !== 'GET') {
-      console.log('[Error] Method not allowed:', request.method)
+      console.log(`[Error] ${request.method} ${requestUrl.pathname} - Method not allowed`)
       return new Response('Method not allowed', { status: 405 })
     }
 
@@ -16,7 +15,7 @@ export default {
     const targetUrl = extractTargetUrl(requestUrl)
 
     if (!targetUrl) {
-      console.log('[Error] Missing URL in path or query parameter')
+      console.log(`[Error] ${requestUrl.pathname} - Missing URL`)
       return new Response('Missing URL: use /{domain}/{path}.jpg or ?url={url}', { status: 400 })
     }
 
@@ -25,22 +24,23 @@ export default {
     try {
       parsedUrl = new URL(targetUrl)
     } catch (error) {
-      console.log('[Error] Invalid URL format:', targetUrl, error.message)
+      console.log(`[Error] ${targetUrl} - Invalid URL format:`, error.message)
       return new Response('Invalid URL format', { status: 400 })
     }
 
     if (!parsedUrl.hostname.endsWith('stagetimer.io')) {
-      console.log('[Error] Forbidden domain:', parsedUrl.hostname)
+      console.log(`[Error] ${targetUrl} - Forbidden domain: ${parsedUrl.hostname}`)
       return new Response('Only *.stagetimer.io URLs are allowed', { status: 403 })
     }
 
-    console.log('[Processing] Screenshot for:', targetUrl)
-
     // Check for required environment variables
     if (!env.SCREENSHOTONE_ACCESS_KEY || !env.SCREENSHOTONE_SECRET_KEY) {
-      console.log('[Error] Missing API credentials')
+      console.log(`[Error] ${targetUrl} - Missing API credentials`)
       return new Response('Server configuration error', { status: 500 })
     }
+
+    // Log the request (compact format)
+    console.log(`→ ${targetUrl}`)
 
     try {
       // Initialize ScreenshotOne client
@@ -51,7 +51,6 @@ export default {
 
       // Use cache key from environment variable (can be rolled on deployment)
       const cacheKey = env.CACHE_KEY || 'default'
-      console.log('[Cache] Using cache key:', cacheKey)
 
       // Build screenshot options matching the current implementation
       const options = screenshotone.TakeOptions
@@ -72,26 +71,24 @@ export default {
 
       // Generate signed URL
       const screenshotUrl = await client.generateSignedTakeURL(options)
-      console.log('[ScreenshotOne] Generated signed URL:', screenshotUrl)
 
       // Fetch the screenshot
       const screenshotResponse = await fetch(screenshotUrl)
 
       if (!screenshotResponse.ok) {
         const errorBody = await screenshotResponse.text()
-        console.log('[Error] ScreenshotOne API error:', screenshotResponse.status, screenshotResponse.statusText)
-        console.log('[Error] Response body:', errorBody)
+        console.log(`[Error] ${targetUrl} - ScreenshotOne API error`)
+        console.log(`  Status: ${screenshotResponse.status} ${screenshotResponse.statusText}`)
+        console.log(`  URL: ${screenshotUrl}`)
+        console.log(`  Response:`, errorBody)
         return new Response(
           `Screenshot service error: ${screenshotResponse.status}`,
           { status: screenshotResponse.status }
         )
       }
 
-      console.log('[Success] Returning screenshot image')
-
       // Generate filename from request
       const filename = generateFilename(requestUrl)
-      console.log('[Metadata] Filename:', filename)
 
       // Return the image with proper headers including metadata
       return new Response(screenshotResponse.body, {
@@ -107,7 +104,9 @@ export default {
         },
       })
     } catch (error) {
-      console.error('Error generating screenshot:', error)
+      console.log(`[Error] ${targetUrl} - Internal error`)
+      console.log(`  Message:`, error.message)
+      console.log(`  Stack:`, error.stack)
       return new Response('Internal server error', { status: 500 })
     }
   },
