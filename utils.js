@@ -1,8 +1,9 @@
 /**
  * Extracts the target URL from the request
- * Supports two formats:
+ * Supports multiple formats:
  * 1. Query parameter: /?url=https://stagetimer.io/pricing
- * 2. Path-based: /stagetimer.io/pricing.jpg?v=2&signature=...
+ * 2. Path-based (literal): /stagetimer.io/output/123/.jpg
+ * 3. Path-based (encoded): /stagetimer.io__output__123.jpg (__ replaces /)
  *
  * @param {URL} requestUrl - The request URL object
  * @returns {string|null} - The extracted target URL or null if not found
@@ -15,7 +16,7 @@ export function extractTargetUrl(requestUrl) {
     return targetUrl
   }
 
-  // Parse from path (e.g., /stagetimer.io/pricing.jpg?v=2&signature=...)
+  // Parse from path
   let pathname = requestUrl.pathname
 
   // Remove leading slash
@@ -36,8 +37,18 @@ export function extractTargetUrl(requestUrl) {
     return null
   }
 
-  // Construct the full URL with https://
-  targetUrl = `https://${pathname}`
+  // Detect if this is the encoded format (domain__path__parts)
+  // vs literal format (domain/path/with/slashes)
+  // Encoded format uses __ (double underscore) for slashes
+  if (pathname.includes('__')) {
+    // Convert double underscores back to slashes
+    const decodedPath = pathname.replace(/__/g, '/')
+    targetUrl = `https://${decodedPath}`
+    console.log('[Path] Detected encoded format, converted:', pathname, '->', targetUrl)
+  } else {
+    // Literal format - use as-is
+    targetUrl = `https://${pathname}`
+  }
 
   // Append query parameters if present (excluding 'url' param which is legacy)
   const queryParams = new URLSearchParams(requestUrl.search)

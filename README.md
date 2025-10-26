@@ -69,11 +69,17 @@ The worker will be available at `https://stagetimer-screenshotone-proxy.<your-su
 
 ### API Endpoint
 
-The worker supports two URL formats:
+The worker supports three URL formats:
 
-**Path-based (recommended):**
+**Path-based encoded (recommended - clean filenames):**
 ```
-GET /{domain}/{path}.jpg
+GET /{domain__{path}__{parts}}.jpg
+```
+Use `__` (double underscore) to replace slashes.
+
+**Path-based literal (for manual testing):**
+```
+GET /{domain}/{path/with/slashes}.jpg
 ```
 
 **Query parameter (legacy):**
@@ -83,9 +89,17 @@ GET /?url=<target-url>
 
 ### Examples
 
-**Path-based format:**
+**Encoded format (clean filename):**
 ```bash
-curl "https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io/pricing.jpg"
+# https://stagetimer.io/output/688cbdf38490dac6f25c0eba/
+curl "https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io__output__688cbdf38490dac6f25c0eba.jpg"
+# → filename: stagetimer.io__output__688cbdf38490dac6f25c0eba.jpg
+```
+
+**Literal format (for testing):**
+```bash
+curl "https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io/output/688cbdf38490dac6f25c0eba/.jpg"
+# → filename: 688cbdf38490dac6f25c0eba.jpg or .jpg
 ```
 
 **Query parameter format:**
@@ -93,11 +107,35 @@ curl "https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io/pricing.j
 curl "https://stagetimer-screenshotone-proxy.workers.dev/?url=https://stagetimer.io/pricing"
 ```
 
+### Convert Script
+
+Use the included script to convert any Stagetimer URL to the worker format:
+
+```bash
+node scripts/convert-url.js "https://stagetimer.io/output/688cbdf38490dac6f25c0eba/?v=2&signature=..."
+```
+
+Output:
+```
+📸 Screenshot Worker URL:
+https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io__output__688cbdf38490dac6f25c0eba.jpg?v=2&signature=...
+
+📁 Filename:
+stagetimer.io__output__688cbdf38490dac6f25c0eba.jpg
+```
+
 ### JavaScript Usage
 
 ```javascript
-// Path-based (recommended)
-const screenshotUrl = 'https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io/pricing.jpg'
+// Encoded format (recommended - clean filename)
+// Replace slashes with __ (double underscore)
+const url = 'https://stagetimer.io/output/688cbdf38490dac6f25c0eba/'
+const encodedPath = url.replace('https://', '').replace(/\//g, '__').replace(/__$/, '') // Remove trailing __
+const screenshotUrl = `https://stagetimer-screenshotone-proxy.workers.dev/${encodedPath}.jpg`
+// → stagetimer.io__output__688cbdf38490dac6f25c0eba.jpg
+
+// Or for simple paths without slashes
+const screenshotUrl = 'https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io__pricing.jpg'
 
 // Query parameter (legacy)
 const screenshotUrl = `https://stagetimer-screenshotone-proxy.workers.dev/?url=${encodeURIComponent('https://stagetimer.io/pricing')}`

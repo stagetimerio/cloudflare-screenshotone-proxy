@@ -20,7 +20,7 @@ export default {
       return new Response('Missing URL: use /{domain}/{path}.jpg or ?url={url}', { status: 400 })
     }
 
-    // Validate that the URL is a stagetimer.io domain
+    // Validate that the URL is a stagetimer.io domain (including subdomains like staging.stagetimer.io)
     let parsedUrl
     try {
       parsedUrl = new URL(targetUrl)
@@ -31,7 +31,7 @@ export default {
 
     if (!parsedUrl.hostname.endsWith('stagetimer.io')) {
       console.log('[Error] Forbidden domain:', parsedUrl.hostname)
-      return new Response('Only stagetimer.io URLs are allowed', { status: 403 })
+      return new Response('Only *.stagetimer.io URLs are allowed', { status: 403 })
     }
 
     console.log('[Processing] Screenshot for:', targetUrl)
