@@ -12,12 +12,31 @@ export default {
     }
 
     const url = new URL(request.url)
-    const targetUrl = url.searchParams.get('url')
+    let targetUrl = url.searchParams.get('url')
 
-    // Validate URL parameter
+    // If no query parameter, parse from path (e.g., /stagetimer.io/pricing.jpg)
     if (!targetUrl) {
-      console.log('[Error] Missing URL parameter')
-      return new Response('Missing required parameter: url', { status: 400 })
+      let pathname = url.pathname
+
+      // Remove leading slash
+      if (pathname.startsWith('/')) {
+        pathname = pathname.slice(1)
+      }
+
+      // Remove .jpg extension if present
+      if (pathname.endsWith('.jpg')) {
+        pathname = pathname.slice(0, -4)
+      }
+
+      // Validate we have a path
+      if (!pathname) {
+        console.log('[Error] Missing URL in path or query parameter')
+        return new Response('Missing URL: use /{domain}/{path}.jpg or ?url={url}', { status: 400 })
+      }
+
+      // Construct the full URL with https://
+      targetUrl = `https://${pathname}`
+      console.log('[Path] Parsed target URL from path:', targetUrl)
     }
 
     // Validate that the URL is a stagetimer.io domain

@@ -69,16 +69,26 @@ The worker will be available at `https://stagetimer-screenshotone-proxy.<your-su
 
 ### API Endpoint
 
+The worker supports two URL formats:
+
+**Path-based (recommended):**
+```
+GET /{domain}/{path}.jpg
+```
+
+**Query parameter (legacy):**
 ```
 GET /?url=<target-url>
 ```
 
-### Parameters
+### Examples
 
-- `url` (required): The stagetimer.io URL to screenshot
+**Path-based format:**
+```bash
+curl "https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io/pricing.jpg"
+```
 
-### Example
-
+**Query parameter format:**
 ```bash
 curl "https://stagetimer-screenshotone-proxy.workers.dev/?url=https://stagetimer.io/pricing"
 ```
@@ -86,6 +96,10 @@ curl "https://stagetimer-screenshotone-proxy.workers.dev/?url=https://stagetimer
 ### JavaScript Usage
 
 ```javascript
+// Path-based (recommended)
+const screenshotUrl = 'https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io/pricing.jpg'
+
+// Query parameter (legacy)
 const screenshotUrl = `https://stagetimer-screenshotone-proxy.workers.dev/?url=${encodeURIComponent('https://stagetimer.io/pricing')}`
 
 // Use in an img tag
