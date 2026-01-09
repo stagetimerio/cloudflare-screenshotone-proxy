@@ -64,7 +64,6 @@ export default {
         .viewportWidth(1200)
         .viewportHeight(627)
         .scrollIntoView('main')
-        .headers('x-hide-cookie-banner:1')
         .cache(true)
         .cacheTtl(2592000) // 30 days
         .cacheKey(cacheKey)
