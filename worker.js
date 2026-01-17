@@ -5,6 +5,13 @@ export default {
   async fetch(request, env) {
     const requestUrl = new URL(request.url)
 
+    // Handle robots.txt
+    if (requestUrl.pathname === '/robots.txt') {
+      return new Response('User-agent: *\nAllow: /\n', {
+        headers: { 'Content-Type': 'text/plain' },
+      })
+    }
+
     // Only allow GET and HEAD requests
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       console.log(`[Error] ${request.method} ${requestUrl.pathname} - Method not allowed`)
