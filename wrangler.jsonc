@@ -10,6 +10,10 @@
   //   - SCREENSHOTONE_SECRET_KEY
   //
   // Public vars (set here or via wrangler deploy):
+  "observability": {
+    "enabled": true
+  },
+
   "vars": {
     "CACHE_KEY": "v1"  // Change this to invalidate all cached screenshots
   }
