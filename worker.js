@@ -69,8 +69,8 @@ export default {
         env.SCREENSHOTONE_SECRET_KEY
       )
 
-      // Use cache key from request header, fallback to environment variable (can be rolled on deployment)
-      const cacheKey = request.headers.get('x-cache-key') || env.CACHE_KEY || 'default'
+      // Use cache key from: screenshotone param > request header > env variable
+      const cacheKey = screenshotOverrides.cache_key || request.headers.get('x-cache-key') || env.CACHE_KEY || 'default'
 
       // Build screenshot options matching the current implementation
       const o = screenshotOverrides
