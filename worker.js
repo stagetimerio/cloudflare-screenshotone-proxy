@@ -18,6 +18,19 @@ export default {
       return new Response('Method not allowed', { status: 405 })
     }
 
+    // Extract and remove screenshotone overrides before URL extraction
+    // Usage: ?screenshotone={"viewport_width":960,"viewport_height":550,"device_scale_factor":2}
+    let screenshotOverrides = {}
+    const rawOverrides = requestUrl.searchParams.get('screenshotone')
+    if (rawOverrides) {
+      try {
+        screenshotOverrides = JSON.parse(rawOverrides)
+      } catch (e) {
+        return new Response('Invalid screenshotone JSON parameter', { status: 400 })
+      }
+      requestUrl.searchParams.delete('screenshotone')
+    }
+
     // Extract target URL from request
     const targetUrl = extractTargetUrl(requestUrl)
 
@@ -60,6 +73,7 @@ export default {
       const cacheKey = request.headers.get('x-cache-key') || env.CACHE_KEY || 'default'
 
       // Build screenshot options matching the current implementation
+      const o = screenshotOverrides
       const options = screenshotone.TakeOptions
         .url(targetUrl)
         .format('jpg')
@@ -67,10 +81,10 @@ export default {
         .blockCookieBanners(true)
         .blockBannersByHeuristics(true)
         .blockTrackers(true)
-        .deviceScaleFactor(1)
-        .viewportWidth(1200)
-        .viewportHeight(627)
-        .scrollIntoView('main')
+        .deviceScaleFactor(o.device_scale_factor || 1)
+        .viewportWidth(o.viewport_width || 1200)
+        .viewportHeight(o.viewport_height || 627)
+        .scrollIntoView(o.scroll_into_view ?? 'main')
         .cache(true)
         .cacheTtl(2592000) // 30 days
         .cacheKey(cacheKey)
@@ -105,8 +119,8 @@ export default {
         'Access-Control-Allow-Methods': 'GET, HEAD',
         'Access-Control-Allow-Headers': 'X-Cache-Key',
         'Access-Control-Expose-Headers': 'Content-Disposition, X-Image-Width, X-Image-Height',
-        'X-Image-Width': '1200',
-        'X-Image-Height': '627',
+        'X-Image-Width': String(o.viewport_width || 1200),
+        'X-Image-Height': String(o.viewport_height || 627),
       }
 
       // Include Content-Length if available from upstream response
