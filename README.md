@@ -148,6 +148,20 @@ const response = await fetch(screenshotUrl)
 const blob = await response.blob()
 ```
 
+### Anchor Scrolling
+
+URLs with `#anchor` fragments automatically scroll to that element before taking the screenshot, using ScreenshotOne's `scroll_into_view` parameter. Since browsers don't send `#` fragments to servers, encode `#` as `%23` in path-based URLs:
+
+```bash
+# Scroll to #picture-in-picture on the page
+curl "https://stagetimer-screenshotone-proxy.workers.dev/stagetimer.io__output__abc%23picture-in-picture.jpg"
+
+# Query parameter format (encode # as %23 in the url value)
+curl "https://stagetimer-screenshotone-proxy.workers.dev/?url=https://stagetimer.io/output/abc/%23picture-in-picture"
+```
+
+Priority: explicit `scroll_into_view` override > URL anchor > default `main`.
+
 ## Screenshot Settings
 
 The worker applies the following settings to all screenshots:
@@ -157,7 +171,7 @@ The worker applies the following settings to all screenshots:
 - Device scale: 1x
 - Blocks: Ads, cookie banners, trackers
 - Cache: 30 days (controlled by `CACHE_KEY` env var)
-- Scroll target: `main` element
+- Scroll target: `main` element (or `#anchor` if present in URL)
 
 These match the settings used in the current Stagetimer landing page implementation.
 

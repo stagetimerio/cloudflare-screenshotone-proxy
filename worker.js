@@ -32,12 +32,15 @@ export default {
     }
 
     // Extract target URL from request
-    const targetUrl = extractTargetUrl(requestUrl)
+    let targetUrl = extractTargetUrl(requestUrl)
 
     if (!targetUrl) {
       console.log(`[Error] ${requestUrl.pathname} - Missing URL`)
       return new Response('Missing URL: use /{domain}/{path}.jpg or ?url={url}', { status: 400 })
     }
+
+    // Handle URL anchors: decode %23 (used in path-based URLs since # is not sent by browsers)
+    targetUrl = targetUrl.replace(/%23/g, '#')
 
     // Validate that the URL is a stagetimer.io domain (including subdomains like staging.stagetimer.io)
     let parsedUrl
@@ -46,6 +49,14 @@ export default {
     } catch (error) {
       console.log(`[Error] ${targetUrl} - Invalid URL format:`, error.message)
       return new Response('Invalid URL format', { status: 400 })
+    }
+
+    // Extract anchor from URL and use as scroll_into_view target
+    let anchorScrollTarget = null
+    if (parsedUrl.hash) {
+      anchorScrollTarget = parsedUrl.hash // e.g., "#picture-in-picture"
+      parsedUrl.hash = ''
+      targetUrl = parsedUrl.toString()
     }
 
     if (!parsedUrl.hostname.endsWith('stagetimer.io')) {
@@ -84,7 +95,7 @@ export default {
         .deviceScaleFactor(o.device_scale_factor || 1)
         .viewportWidth(o.viewport_width || 1200)
         .viewportHeight(o.viewport_height || 627)
-        .scrollIntoView(o.scroll_into_view ?? 'main')
+        .scrollIntoView(o.scroll_into_view ?? anchorScrollTarget ?? 'main')
         .cache(true)
         .cacheTtl(2592000) // 30 days
         .cacheKey(cacheKey)
